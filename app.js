@@ -5,6 +5,7 @@ const state = {
   selectedDate: null,
   selectedTime: null,
   isLoggedIn: false,
+  user: JSON.parse(localStorage.getItem('saraswati_user') || 'null'),
   fromBooking: false,
 };
 
@@ -135,17 +136,13 @@ function handleLogin() {
     return;
   }
 
-  // Simulate login
   showToast('🔄 Signing you in…', 'info');
-  setTimeout(() => {
-    state.isLoggedIn = true;
-    if (state.fromBooking && state.selectedTable) {
-      confirmBooking();
-    } else {
-      showPage('page-booking');
-      showToast('👋 Welcome back!');
-    }
-  }, 1200);
+  apiPost({ action: 'login', email, password: pass }).then(data => {
+    if (!data.ok) { showPage('page-register'); showToast('📝 Account not found. Please register to continue.', 'warn'); return; }
+    state.isLoggedIn = true; state.user = data.user; localStorage.setItem('saraswati_user', JSON.stringify(data.user));
+    if (state.fromBooking && state.selectedTable) confirmBooking();
+    else { showPage('page-booking'); showToast('👋 Welcome back!'); }
+  });
 }
 
 function handleRegister() {
@@ -154,20 +151,23 @@ function handleRegister() {
     showToast('⚠️ Please accept the Library Rules to continue', 'warn');
     return;
   }
+  const first = document.getElementById('reg-first').value.trim();
+  const last = document.getElementById('reg-last').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const password = document.getElementById('reg-password').value;
+  if (!first || !email || !password) { showToast('⚠️ Name, email and password are required', 'warn'); return; }
   showToast('🔄 Creating your account…', 'info');
-  setTimeout(() => {
-    state.isLoggedIn = true;
-    if (state.fromBooking && state.selectedTable) {
-      confirmBooking();
-    } else {
-      showPage('page-booking');
-      showToast('🎉 Account created! Start booking your table.');
-    }
-  }, 1200);
+  apiPost({ action: 'register', name: `${first} ${last}`.trim(), email, phone, password }).then(data => {
+    if (!data.ok) { showToast(data.message || 'Registration failed', 'warn'); showPage('page-login'); return; }
+    state.isLoggedIn = true; state.user = data.user; localStorage.setItem('saraswati_user', JSON.stringify(data.user));
+    if (state.fromBooking && state.selectedTable) confirmBooking();
+    else { showPage('page-booking'); showToast('🎉 Account created! Start booking your table.'); }
+  });
 }
 
 /* ===== BOOKING CONFIRMATION ===== */
-function confirmBooking() {
+async function confirmBooking() {
   const zoneLabels = {
     window: 'Window Zone',
     silent: 'Silent Zone',
@@ -183,6 +183,12 @@ function confirmBooking() {
     `Table ${state.selectedTable} — ${zoneLabels[state.selectedZone] || ''}`;
   document.getElementById('confirm-date').textContent = dateStr;
   document.getElementById('confirm-time').textContent = state.selectedTime || '10:00 AM – 12:00 PM';
+  const plan = document.getElementById('plan-select');
+  const planText = plan ? plan.options[plan.selectedIndex].textContent : '1 Month — ₹1000';
+  const payment = await apiPost({ action: 'book', user_id: state.user?.id || 0, table_id: state.selectedTable, date: state.selectedDate, slot: state.selectedTime, plan_id: plan?.value || 1 });
+  if (!payment.ok) { showToast(payment.message || 'Booking failed', 'warn'); return; }
+  document.getElementById('confirm-payment').textContent = `${planText} · PhonePe ₹${payment.amount} pending`;
+  document.getElementById('confirm-student').textContent = state.user?.name || 'Member';
 
   showPage('page-confirm');
 
@@ -227,6 +233,30 @@ function showToast(msg, type = 'success') {
   }, 2800);
 }
 
+async function apiPost(payload) {
+  const body = new URLSearchParams(payload);
+  const res = await fetch('api.php', { method: 'POST', body });
+  return res.json();
+}
+
+async function refreshTables() {
+  const date = document.getElementById('booking-date')?.value || '';
+  const slot = document.getElementById('booking-time')?.value || '';
+  if (!date) return;
+  const res = await fetch(`api.php?action=tables&date=${encodeURIComponent(date)}&slot=${encodeURIComponent(slot)}`);
+  const data = await res.json();
+  if (!data.ok) return;
+  data.tables.forEach(t => {
+    const el = document.querySelector(`[data-table="${t.id}"]`);
+    if (!el) return;
+    el.classList.remove('available','booked','maintenance','selected');
+    el.classList.add(t.live_status);
+    if (t.live_status === 'available') el.setAttribute('onclick','selectTable(this)'); else el.removeAttribute('onclick');
+    const tag = el.querySelector('.table-tag');
+    if (tag) tag.textContent = t.live_status === 'available' ? `${t.seats} seat${t.seats > 1 ? 's' : ''}${t.zone === 'power' ? ' ⚡' : ''}` : (t.live_status === 'maintenance' ? '🔧 Maint.' : 'Booked');
+  });
+}
+
 /* ===== UTILS ===== */
 function isValidEmail(e) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
@@ -234,6 +264,7 @@ function isValidEmail(e) {
 
 /* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded', () => {
+  state.isLoggedIn = Boolean(state.user);
   // Set default date to today
   const today = new Date().toISOString().split('T')[0];
   const dateInput = document.getElementById('booking-date');
@@ -241,6 +272,10 @@ document.addEventListener('DOMContentLoaded', () => {
     dateInput.value = today;
     dateInput.min = today;
   }
+
+  document.getElementById('booking-date')?.addEventListener('change', refreshTables);
+  document.getElementById('booking-time')?.addEventListener('change', refreshTables);
+  setTimeout(refreshTables, 400);
 
   // Subtle 3D tilt on zone cards (landing page)
   document.querySelectorAll('.zone-card').forEach(card => {

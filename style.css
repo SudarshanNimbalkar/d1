@@ -707,3 +707,31 @@ body {
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ===== FACILITIES, PLANS & ADMIN ===== */
+.spec-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: -10px 0 22px;
+}
+.spec-strip span, .plan-picker {
+  background: rgba(124,58,237,0.12);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  color: var(--text);
+  padding: 9px 14px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.plan-picker { display: flex; align-items: center; gap: 10px; border-radius: 16px; }
+.plan-picker .dt-input { padding: 8px 12px; min-width: 185px; }
+.admin-shell { max-width: 1180px; margin: 0 auto; padding: 40px 24px; }
+.admin-shell h1 { font-family: 'Playfair Display', serif; font-size: 42px; }
+.admin-shell h2 { margin: 28px 0 14px; }
+.admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.admin-card, .admin-row { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; display: flex; gap: 10px; flex-direction: column; }
+.admin-card small { color: var(--text-muted); min-height: 48px; }
+.admin-card select { background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 10px; }
+.admin-list { display: grid; gap: 10px; }
+.admin-row { flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; }
