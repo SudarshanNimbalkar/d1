@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <?php require_once __DIR__ . '/db.php'; ?>
   <title>saraswati library — Table Booking</title>
   <link
     href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Playfair+Display:wght@700;900&display=swap"
@@ -26,6 +27,7 @@
         <span class="logo-text">saraswati library</span>
       </div>
       <div class="nav-actions">
+        <a class="btn-ghost" href="admin.php">Admin Panel</a>
         <button class="btn-ghost" onclick="showPage('page-login')">Sign In</button>
         <button class="btn-primary" onclick="showPage('page-register')">Register</button>
       </div>
@@ -34,7 +36,7 @@
     <div class="hero">
       <div class="hero-badge">✦ 39 Premium Study Spaces</div>
       <h1 class="hero-title">Reserve Your <span class="gradient-text">Perfect Spot</span> in the Library</h1>
-      <p class="hero-subtitle">Choose your table, pick your time, and walk in ready to focus. No waiting, no stress.</p>
+      <p class="hero-subtitle">Choose your table like a RedBus seat map, subscribe, pay with PhonePe, and walk in ready to focus. AC room, special spotlight, free WiFi, and laptop charging points included.</p>
       <div class="hero-actions">
         <button class="btn-cta" onclick="showPage('page-booking')">
           <span>Browse Tables</span>
@@ -93,6 +95,7 @@
         <span class="logo-text">saraswati library</span>
       </div>
       <div class="nav-actions">
+        <a class="btn-ghost" href="admin.php">Admin</a>
         <button class="btn-ghost" onclick="showPage('page-login')">Sign In to Book</button>
       </div>
     </nav>
@@ -135,6 +138,10 @@
       </div>
 
       <!-- Legend -->
+      <div class="spec-strip">
+        <span>❄️ AC Room</span><span>💡 Special Spotlight</span><span>📶 Free WiFi</span><span>🔌 Laptop Charging Point</span><span>📱 PhonePe Payment</span>
+      </div>
+
       <div class="legend">
         <div class="legend-item">
           <div class="legend-dot available"></div>Available
@@ -553,6 +560,7 @@
             <div class="summary-meta" id="summary-table-meta">Zone · Seats</div>
           </div>
         </div>
+        <label class="plan-picker">Subscription plan <select id="plan-select" class="dt-input"><option value="1" data-price="1000">1 Month — ₹1000</option><option value="2" data-price="2700">3 Months — ₹2700</option><option value="3" data-price="10000">1 Year — ₹10000</option></select></label>
         <button class="btn-cta" onclick="proceedToAuth()">
           <span>Proceed to Book</span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -647,14 +655,14 @@
               <label>First Name</label>
               <div class="input-wrap">
                 <span class="input-icon">👤</span>
-                <input type="text" placeholder="Aarav" class="auth-input" />
+                <input type="text" id="reg-first" placeholder="Aarav" class="auth-input" />
               </div>
             </div>
             <div class="input-group">
               <label>Last Name</label>
               <div class="input-wrap">
                 <span class="input-icon">👤</span>
-                <input type="text" placeholder="Shah" class="auth-input" />
+                <input type="text" id="reg-last" placeholder="Shah" class="auth-input" />
               </div>
             </div>
           </div>
@@ -669,21 +677,21 @@
             <label>Email Address</label>
             <div class="input-wrap">
               <span class="input-icon">✉️</span>
-              <input type="email" placeholder="you@college.edu" class="auth-input" />
+              <input type="email" id="reg-email" placeholder="you@college.edu" class="auth-input" />
             </div>
           </div>
           <div class="input-group">
             <label>Phone Number</label>
             <div class="input-wrap">
               <span class="input-icon">📱</span>
-              <input type="tel" placeholder="+91 98765 43210" class="auth-input" />
+              <input type="tel" id="reg-phone" placeholder="+91 98765 43210" class="auth-input" />
             </div>
           </div>
           <div class="input-group">
             <label>Password</label>
             <div class="input-wrap">
               <span class="input-icon">🔒</span>
-              <input type="password" placeholder="Min. 8 characters" class="auth-input" />
+              <input type="password" id="reg-password" placeholder="Min. 8 characters" class="auth-input" />
             </div>
           </div>
           <div class="password-strength">
@@ -764,9 +772,10 @@
               <span class="ticket-label">Time</span>
               <span class="ticket-value" id="confirm-time">10:00 AM – 12:00 PM</span>
             </div>
+            <div class="ticket-row"><span class="ticket-label">Plan / Payment</span><span class="ticket-value" id="confirm-payment">PhonePe pending</span></div>
             <div class="ticket-row">
               <span class="ticket-label">Student</span>
-              <span class="ticket-value">Aarav Shah</span>
+              <span class="ticket-value" id="confirm-student">Member</span>
             </div>
           </div>
           <div class="ticket-barcode">
